@@ -8,8 +8,7 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
-  ReferenceArea
+  Legend
 } from 'recharts';
 
 interface MonthlyInventoryData {
