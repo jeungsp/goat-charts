@@ -8,7 +8,8 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend
+  Legend,
+  ReferenceArea
 } from 'recharts';
 
 interface MonthlyInventoryData {
@@ -115,6 +116,8 @@ const monthlyData = Array.from({ length: 74 }, (_, i) => {
 
 const InventoryGrowthChart: React.FC = () => {
   const [isQuarterly, setIsQuarterly] = useState(false);
+  const [isZoomedOut, setIsZoomedOut] = useState(false);
+  const [viewWindow, setViewWindow] = useState({ start: 24, end: 48 }); // Show 24 months by default
 
   // Adjust month numbers to start at 24
   const monthlyAdjustedData = monthlyData.map((item, index) => ({
@@ -135,34 +138,100 @@ const InventoryGrowthChart: React.FC = () => {
       };
     }
     acc[quarterIndex].newInventory += curr.newInventory;
-    acc[quarterIndex].available = curr.available; // Take the last value of the quarter
-    acc[quarterIndex].left = curr.left; // Take the last value of the quarter
-    acc[quarterIndex].sold = curr.sold; // Take the last value of the quarter
+    acc[quarterIndex].available = curr.available;
+    acc[quarterIndex].left = curr.left;
+    acc[quarterIndex].sold = curr.sold;
     return acc;
   }, []);
 
   const data = isQuarterly ? quarterlyData : monthlyAdjustedData;
+  
+  const handleScroll = (direction: 'left' | 'right') => {
+    if (!isZoomedOut) {
+      const step = 6; // Scroll 6 months at a time
+      setViewWindow(prev => {
+        const newStart = direction === 'left' ? 
+          Math.max(24, prev.start - step) : 
+          Math.min(monthlyAdjustedData.length - 24, prev.start + step);
+        return {
+          start: newStart,
+          end: newStart + 24
+        };
+      });
+    }
+  };
+
+  const visibleData = isZoomedOut ? data : data.slice(
+    isQuarterly ? Math.floor((viewWindow.start - 24) / 3) : viewWindow.start - 24,
+    isQuarterly ? Math.floor((viewWindow.end - 24) / 3) : viewWindow.end - 24
+  );
 
   return (
     <div style={{ width: '100%', height: '600px', marginTop: '20px', marginBottom: '40px' }}>
       <div style={{ textAlign: 'center', marginBottom: '15px' }}>
         <h3 style={{ marginBottom: '10px' }}>Inventory & Sales</h3>
-        <button 
-          onClick={() => setIsQuarterly(!isQuarterly)}
-          style={{
-            padding: '8px 16px',
-            backgroundColor: '#f0f0f0',
-            border: '1px solid #ddd',
-            borderRadius: '4px',
-            cursor: 'pointer'
-          }}
-        >
-          {isQuarterly ? 'Show Monthly' : 'Show Quarterly'}
-        </button>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginBottom: '10px' }}>
+          <button 
+            onClick={() => setIsQuarterly(!isQuarterly)}
+            style={{
+              padding: '8px 16px',
+              backgroundColor: '#f0f0f0',
+              border: '1px solid #ddd',
+              borderRadius: '4px',
+              cursor: 'pointer'
+            }}
+          >
+            {isQuarterly ? 'Show Monthly' : 'Show Quarterly'}
+          </button>
+          <button 
+            onClick={() => setIsZoomedOut(!isZoomedOut)}
+            style={{
+              padding: '8px 16px',
+              backgroundColor: '#f0f0f0',
+              border: '1px solid #ddd',
+              borderRadius: '4px',
+              cursor: 'pointer'
+            }}
+          >
+            {isZoomedOut ? 'Show Detailed View' : 'Show Full View'}
+          </button>
+        </div>
+        {!isZoomedOut && (
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
+            <button
+              onClick={() => handleScroll('left')}
+              disabled={viewWindow.start <= 24}
+              style={{
+                padding: '8px 16px',
+                backgroundColor: '#f0f0f0',
+                border: '1px solid #ddd',
+                borderRadius: '4px',
+                cursor: viewWindow.start <= 24 ? 'not-allowed' : 'pointer',
+                opacity: viewWindow.start <= 24 ? 0.5 : 1
+              }}
+            >
+              ← Previous
+            </button>
+            <button
+              onClick={() => handleScroll('right')}
+              disabled={viewWindow.end >= monthlyAdjustedData.length}
+              style={{
+                padding: '8px 16px',
+                backgroundColor: '#f0f0f0',
+                border: '1px solid #ddd',
+                borderRadius: '4px',
+                cursor: viewWindow.end >= monthlyAdjustedData.length ? 'not-allowed' : 'pointer',
+                opacity: viewWindow.end >= monthlyAdjustedData.length ? 0.5 : 1
+              }}
+            >
+              Next →
+            </button>
+          </div>
+        )}
       </div>
       <ResponsiveContainer>
         <ComposedChart 
-          data={data}
+          data={visibleData}
           margin={{ top: 20, right: 50, bottom: 30, left: 50 }}
         >
           <CartesianGrid strokeDasharray="3 3" />

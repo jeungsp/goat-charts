@@ -108,7 +108,7 @@ const BarnChart: React.FC = () => {
   const maxBarns = Math.max(...quarterlyData.map(d => d.barns));
 
   return (
-    <div style={{ width: '100%', height: '400px', marginTop: '20px', marginBottom: '100px' }}>
+    <div style={{ width: '100%', height: '400px', marginTop: '120px', marginBottom: '100px' }}>
       <div style={{ textAlign: 'center', marginBottom: '15px' }}>
         <h3>Barns Needed</h3>
       </div>

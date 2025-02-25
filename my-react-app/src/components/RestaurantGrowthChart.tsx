@@ -75,7 +75,7 @@ const rawData: RestaurantData[] = [
 
 const RestaurantGrowthChart: React.FC = () => {
   return (
-    <div style={{ marginTop: '20px', width: '100%', height: '600px' }}>
+    <div style={{ marginTop: '120px', width: '100%', height: '600px' }}>
       <h3 style={{ paddingTop: '20px' }}>Restaurant Growth</h3>
       <ResponsiveContainer>
         <ComposedChart 
