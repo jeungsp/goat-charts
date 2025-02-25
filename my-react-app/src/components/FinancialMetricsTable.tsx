@@ -61,8 +61,9 @@ const calculateIRR = (cashflows: number[], periods: number[]): number => {
   let npvValue = npv(rate);
 
   while (Math.abs(npvValue) > tolerance && iteration < maxIterations) {
+    const currentRate = rate; // Capture the current rate value
     const derivative = cashflows.reduce((sum, cashflow, index) => {
-      return sum - (index * cashflow) / Math.pow(1 + rate, index + 1);
+      return sum - (index * cashflow) / Math.pow(1 + currentRate, index + 1);
     }, 0);
 
     rate = rate - npvValue / derivative;
