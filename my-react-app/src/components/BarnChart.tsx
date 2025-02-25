@@ -84,7 +84,6 @@ const calculateQuarterlyData = (): QuarterlyData[] => {
   const quarterlyData: QuarterlyData[] = [];
   for (let i = 0; i < monthlyData.length; i += 3) {
     if (i + 2 < monthlyData.length) {
-      const quarterIndex = Math.floor(i / 3);
       const quarterNumber = Math.floor(i / 3) % 4 + 1;
       const yearNumber = Math.floor(i / 12) + 2;  // Start from Year 2
 

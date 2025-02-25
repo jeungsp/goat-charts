@@ -1,6 +1,6 @@
 import React from 'react';
 import './App.css';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, ComposedChart, ReferenceLine } from 'recharts';
+import { Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ComposedChart, Bar } from 'recharts';
 import FinancialMetricsTable from './components/FinancialMetricsTable';
 import InventoryAndSalesChart from './components/InventoryAndSalesChart';
 import RestaurantGrowthChart from './components/RestaurantGrowthChart';
@@ -28,7 +28,6 @@ interface QuarterlyData {
   tooltipProfit: string;
   tooltipGrowth: string;
   tooltipMargin: string;
-  avgGoats: number;
   barns: number;
 }
 
@@ -137,8 +136,6 @@ const QuarterlyRevenueChart: React.FC = () => {
           ? ((quarterRevenue / previousQuarterRevenue) - 1) * 100 
           : 0;
         
-        const avgGoats = (monthlyData[i].goats + monthlyData[i+1].goats + monthlyData[i+2].goats) / 3;
-        
         const totalGoats = [
           monthlyData[i].goats + monthlyData[i].inventory,
           monthlyData[i+1].goats + monthlyData[i+1].inventory,
@@ -158,7 +155,6 @@ const QuarterlyRevenueChart: React.FC = () => {
           tooltipProfit: `$${(Math.round(quarterProfit / 10000) / 100).toFixed(2)}M`,
           tooltipGrowth: `${Math.round(growthRate)}%`,
           tooltipMargin: `${Math.round((quarterProfit / quarterRevenue) * 100)}%`,
-          avgGoats: avgTotalGoats,
           barns: Math.round(avgTotalGoats / 1000)  // Round to nearest whole barn
         });
       }
