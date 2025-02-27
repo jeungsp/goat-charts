@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useLanguage, translations } from '../context/LanguageContext';
+import { useLanguage } from '../context/LanguageContext';
 
 interface LoginProps {
   onLogin: (isAuthenticated: boolean) => void;
