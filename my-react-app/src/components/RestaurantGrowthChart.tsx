@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ComposedChart, Bar } from 'recharts';
 import { useLanguage, translations } from '../context/LanguageContext';
 
