@@ -10,7 +10,7 @@ import {
   Tooltip,
   Legend
 } from 'recharts';
-import { useLanguage, translations, formatCurrency, formatNumber } from '../context/LanguageContext';
+import { useLanguage, translations, formatNumber } from '../context/LanguageContext';
 
 interface RestaurantData {
   month: number;

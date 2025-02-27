@@ -9,7 +9,6 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const { language } = useLanguage();
-  const t = translations[language];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
