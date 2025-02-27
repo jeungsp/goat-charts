@@ -114,7 +114,6 @@ const monthlyData = Array.from({ length: 74 }, (_, i) => {
 });
 
 const InventoryGrowthChart: React.FC = () => {
-  const [isQuarterly, setIsQuarterly] = useState(false);
   const [isZoomedOut, setIsZoomedOut] = useState(false);
   const [viewWindow, setViewWindow] = useState({ start: 24, end: 48 }); // Show 24 months by default
 
@@ -124,26 +123,7 @@ const InventoryGrowthChart: React.FC = () => {
     month: index + 24  // Start at month 24
   }));
 
-  // Create quarterly data
-  const quarterlyData = monthlyAdjustedData.reduce((acc: any[], curr, index) => {
-    const quarterIndex = Math.floor(index / 3);
-    if (!acc[quarterIndex]) {
-      acc[quarterIndex] = {
-        quarter: `Y${Math.floor((curr.month - 1) / 12) + 1}Q${Math.floor(((curr.month - 1) % 12) / 3) + 1}`,
-        newInventory: 0,
-        available: 0,
-        left: 0,
-        sold: 0
-      };
-    }
-    acc[quarterIndex].newInventory += curr.newInventory;
-    acc[quarterIndex].available = curr.available;
-    acc[quarterIndex].left = curr.left;
-    acc[quarterIndex].sold = curr.sold;
-    return acc;
-  }, []);
-
-  const data = isQuarterly ? quarterlyData : monthlyAdjustedData;
+  const data = monthlyAdjustedData;
   
   const handleScroll = (direction: 'left' | 'right') => {
     if (!isZoomedOut) {
@@ -161,8 +141,8 @@ const InventoryGrowthChart: React.FC = () => {
   };
 
   const visibleData = isZoomedOut ? data : data.slice(
-    isQuarterly ? Math.floor((viewWindow.start - 24) / 3) : viewWindow.start - 24,
-    isQuarterly ? Math.floor((viewWindow.end - 24) / 3) : viewWindow.end - 24
+    viewWindow.start - 24,
+    viewWindow.end - 24
   );
 
   return (
@@ -170,18 +150,6 @@ const InventoryGrowthChart: React.FC = () => {
       <div style={{ textAlign: 'center', marginBottom: '15px' }}>
         <h3 style={{ marginBottom: '10px' }}>Inventory & Sales</h3>
         <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginBottom: '10px' }}>
-          <button 
-            onClick={() => setIsQuarterly(!isQuarterly)}
-            style={{
-              padding: '8px 16px',
-              backgroundColor: '#f0f0f0',
-              border: '1px solid #ddd',
-              borderRadius: '4px',
-              cursor: 'pointer'
-            }}
-          >
-            {isQuarterly ? 'Show Monthly' : 'Show Quarterly'}
-          </button>
           <button 
             onClick={() => setIsZoomedOut(!isZoomedOut)}
             style={{
@@ -235,8 +203,8 @@ const InventoryGrowthChart: React.FC = () => {
         >
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis 
-            dataKey={isQuarterly ? "quarter" : "month"}
-            label={{ value: isQuarterly ? 'Quarter' : 'Month', position: 'insideBottom', offset: -5 }}
+            dataKey="month"
+            label={{ value: 'Month', position: 'insideBottom', offset: -5 }}
           />
           <YAxis 
             yAxisId="left"
