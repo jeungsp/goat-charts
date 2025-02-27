@@ -1,16 +1,6 @@
-import React, { useState } from 'react';
-import {
-  ResponsiveContainer,
-  ComposedChart,
-  Line,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend
-} from 'recharts';
-import { useLanguage, translations, formatNumber } from '../context/LanguageContext';
+import React from 'react';
+import { Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ComposedChart, Bar } from 'recharts';
+import { useLanguage, translations } from '../context/LanguageContext';
 
 interface RestaurantData {
   month: number;
@@ -183,9 +173,9 @@ const RestaurantGrowthChart: React.FC = () => {
               formatter={(value: number, name: string) => {
                 if (name === t.totalRestaurants) {
                   const marketPenetration = ((value / 5000) * 100).toFixed(1);
-                  return [`${formatNumber(value, language)} (${t.marketPenetration}: ${marketPenetration}%)`, name];
+                  return [`${value.toLocaleString()} (${t.marketPenetration}: ${marketPenetration}%)`, name];
                 }
-                return [formatNumber(value, language), name];
+                return [value.toLocaleString(), name];
               }}
             />
             <Legend wrapperStyle={{ paddingTop: '80px', paddingBottom: '40px', fontSize: '24px', fontWeight: 'bold' }} />
