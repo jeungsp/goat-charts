@@ -10,6 +10,7 @@ import {
   Tooltip,
   Legend
 } from 'recharts';
+import { useLanguage, translations, formatCurrency, formatNumber } from '../context/LanguageContext';
 
 interface RestaurantData {
   month: number;
@@ -81,6 +82,8 @@ const rawData: RestaurantData[] = [
 }));
 
 const RestaurantGrowthChart: React.FC = () => {
+  const { language } = useLanguage();
+  const t = translations[language];
   const [isZoomedOut, setIsZoomedOut] = useState(false);
   const [viewWindow, setViewWindow] = useState({ start: 24, end: 48 }); // Show 24 months by default
 
@@ -105,84 +108,95 @@ const RestaurantGrowthChart: React.FC = () => {
   );
 
   return (
-    <div style={{ marginTop: '120px', width: '100%', height: '600px' }}>
-      <div style={{ textAlign: 'center', marginBottom: '15px' }}>
-        <h3 style={{ marginBottom: '10px' }}>Restaurant Growth</h3>
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginBottom: '10px' }}>
-          <button 
-            onClick={() => setIsZoomedOut(!isZoomedOut)}
+    <div style={{ marginTop: '20px' }}>
+      <h3 style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '20px' }}>{t.restaurantGrowth}</h3>
+      <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginBottom: '10px' }}>
+        <button 
+          onClick={() => setIsZoomedOut(!isZoomedOut)}
+          style={{
+            padding: '8px 16px',
+            backgroundColor: '#f0f0f0',
+            border: '1px solid #ddd',
+            borderRadius: '4px',
+            cursor: 'pointer'
+          }}
+        >
+          {isZoomedOut ? t.showDetailedView : t.showFullView}
+        </button>
+      </div>
+      {!isZoomedOut && (
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
+          <button
+            onClick={() => handleScroll('left')}
+            disabled={viewWindow.start <= rawData[0].month}
             style={{
               padding: '8px 16px',
               backgroundColor: '#f0f0f0',
               border: '1px solid #ddd',
               borderRadius: '4px',
-              cursor: 'pointer'
+              cursor: viewWindow.start <= rawData[0].month ? 'not-allowed' : 'pointer',
+              opacity: viewWindow.start <= rawData[0].month ? 0.5 : 1
             }}
           >
-            {isZoomedOut ? 'Show Detailed View' : 'Show Full View'}
+            {t.previous}
+          </button>
+          <button
+            onClick={() => handleScroll('right')}
+            disabled={viewWindow.end >= rawData[rawData.length - 1].month}
+            style={{
+              padding: '8px 16px',
+              backgroundColor: '#f0f0f0',
+              border: '1px solid #ddd',
+              borderRadius: '4px',
+              cursor: viewWindow.end >= rawData[rawData.length - 1].month ? 'not-allowed' : 'pointer',
+              opacity: viewWindow.end >= rawData[rawData.length - 1].month ? 0.5 : 1
+            }}
+          >
+            {t.next}
           </button>
         </div>
-        {!isZoomedOut && (
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
-            <button
-              onClick={() => handleScroll('left')}
-              disabled={viewWindow.start <= rawData[0].month}
-              style={{
-                padding: '8px 16px',
-                backgroundColor: '#f0f0f0',
-                border: '1px solid #ddd',
-                borderRadius: '4px',
-                cursor: viewWindow.start <= rawData[0].month ? 'not-allowed' : 'pointer',
-                opacity: viewWindow.start <= rawData[0].month ? 0.5 : 1
+      )}
+      <div style={{ width: '100%', height: '800px' }}>
+        <ResponsiveContainer>
+          <ComposedChart
+            data={visibleData}
+            margin={{ top: 20, right: 110, bottom: 70, left: 50 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis
+              dataKey="month"
+              label={{ value: t.month, position: 'bottom', offset: 12, fontSize: 24, fontWeight: 'medium' }}
+              tick={{ fontSize: 16 }}
+            />
+            <YAxis
+              yAxisId="left"
+              label={{ value: t.totalRestaurants, angle: -90, position: 'left', offset: 12, fontSize: 24, fontWeight: 'medium' }}
+              tick={{ fontSize: 16 }}
+            />
+            <YAxis
+              yAxisId="right"
+              orientation="right"
+              label={{ value: t.newRestaurantsNeeded, angle: 90, position: 'right', offset: 12, fontSize: 24, fontWeight: 'medium' }}
+              tick={{ fontSize: 16 }}
+            />
+            <Tooltip 
+              formatter={(value: number, name: string) => {
+                if (name === t.totalRestaurants) {
+                  const marketPenetration = ((value / 5000) * 100).toFixed(1);
+                  return [`${formatNumber(value, language)} (${t.marketPenetration}: ${marketPenetration}%)`, name];
+                }
+                return [formatNumber(value, language), name];
               }}
-            >
-              ← Previous
-            </button>
-            <button
-              onClick={() => handleScroll('right')}
-              disabled={viewWindow.end >= rawData[rawData.length - 1].month}
-              style={{
-                padding: '8px 16px',
-                backgroundColor: '#f0f0f0',
-                border: '1px solid #ddd',
-                borderRadius: '4px',
-                cursor: viewWindow.end >= rawData[rawData.length - 1].month ? 'not-allowed' : 'pointer',
-                opacity: viewWindow.end >= rawData[rawData.length - 1].month ? 0.5 : 1
-              }}
-            >
-              Next →
-            </button>
-          </div>
-        )}
+            />
+            <Legend wrapperStyle={{ paddingTop: '80px', paddingBottom: '40px', fontSize: '24px', fontWeight: 'bold' }} />
+            <Line yAxisId="left" type="monotone" dataKey="totalRestaurants" stroke="#ff7300" name={t.totalRestaurants} strokeWidth={2} />
+            <Bar yAxisId="right" dataKey="weeklyRestaurants" fill="#8884d8" name={t.weeklyRestaurantsNeeded} />
+            <Bar yAxisId="right" dataKey="newRestaurants" fill="#82ca9d" name={t.newRestaurantsMonthly} />
+          </ComposedChart>
+        </ResponsiveContainer>
       </div>
-      <ResponsiveContainer>
-        <ComposedChart 
-          data={visibleData}
-          margin={{ top: 20, right: 70, bottom: 30, left: 50 }}
-        >
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis 
-            dataKey="month" 
-            label={{ value: 'Month', position: 'insideBottom', offset: -5 }}
-          />
-          <YAxis 
-            yAxisId="left"
-            label={{ value: 'Total Restaurants', angle: -90, position: 'insideLeft', offset: -15 }}
-          />
-          <YAxis 
-            yAxisId="right"
-            orientation="right"
-            label={{ value: 'Restaurants', angle: 90, position: 'insideRight', offset: 35 }}
-          />
-          <Tooltip />
-          <Legend wrapperStyle={{ paddingTop: '20px', paddingBottom: '20px' }} />
-          <Line yAxisId="left" type="monotone" dataKey="totalRestaurants" stroke="#ff7300" name="Total Restaurants" strokeWidth={2} />
-          <Bar yAxisId="right" dataKey="weeklyRestaurants" fill="#8884d8" name="Weekly Restaurants Needed" />
-          <Bar yAxisId="right" dataKey="newRestaurants" fill="#82ca9d" name="New Restaurants Monthly" />
-        </ComposedChart>
-      </ResponsiveContainer>
       <div style={{ textAlign: 'center', marginTop: '10px', marginBottom: '200px', paddingBottom: '200px', color: '#666', fontSize: '1.45em' }}>
-        Note: We assume that one restaurant will on average purchase 0.33 goats per day
+        {t.goatAssumption}
       </div>
     </div>
   );

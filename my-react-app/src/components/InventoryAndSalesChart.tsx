@@ -10,6 +10,7 @@ import {
   Tooltip,
   Legend
 } from 'recharts';
+import { useLanguage, translations, formatNumber } from '../context/LanguageContext';
 
 interface MonthlyInventoryData {
   month: number;
@@ -114,6 +115,8 @@ const monthlyData = Array.from({ length: 74 }, (_, i) => {
 });
 
 const InventoryGrowthChart: React.FC = () => {
+  const { language } = useLanguage();
+  const t = translations[language];
   const [isZoomedOut, setIsZoomedOut] = useState(false);
   const [viewWindow, setViewWindow] = useState({ start: 24, end: 48 }); // Show 24 months by default
 
@@ -146,83 +149,91 @@ const InventoryGrowthChart: React.FC = () => {
   );
 
   return (
-    <div style={{ width: '100%', height: '600px', marginTop: '20px', marginBottom: '40px' }}>
-      <div style={{ textAlign: 'center', marginBottom: '15px' }}>
-        <h3 style={{ marginBottom: '10px' }}>Inventory & Sales</h3>
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginBottom: '10px' }}>
-          <button 
-            onClick={() => setIsZoomedOut(!isZoomedOut)}
+    <div style={{ marginTop: '20px' }}>
+      <h3 style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '20px' }}>{t.inventoryAndSales}</h3>
+      
+      <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginBottom: '20px' }}>
+        <button 
+          onClick={() => setIsZoomedOut(!isZoomedOut)}
+          style={{
+            padding: '8px 16px',
+            backgroundColor: '#f0f0f0',
+            border: '1px solid #ddd',
+            borderRadius: '4px',
+            cursor: 'pointer'
+          }}
+        >
+          {isZoomedOut ? t.showDetailedView : t.showFullView}
+        </button>
+      </div>
+      {!isZoomedOut && (
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginBottom: '20px' }}>
+          <button
+            onClick={() => handleScroll('left')}
+            disabled={viewWindow.start <= rawData[0].month}
             style={{
               padding: '8px 16px',
               backgroundColor: '#f0f0f0',
               border: '1px solid #ddd',
               borderRadius: '4px',
-              cursor: 'pointer'
+              cursor: viewWindow.start <= rawData[0].month ? 'not-allowed' : 'pointer',
+              opacity: viewWindow.start <= rawData[0].month ? 0.5 : 1
             }}
           >
-            {isZoomedOut ? 'Show Detailed View' : 'Show Full View'}
+            ← {t.previous}
+          </button>
+          <button
+            onClick={() => handleScroll('right')}
+            disabled={viewWindow.end >= rawData[rawData.length - 1].month}
+            style={{
+              padding: '8px 16px',
+              backgroundColor: '#f0f0f0',
+              border: '1px solid #ddd',
+              borderRadius: '4px',
+              cursor: viewWindow.end >= rawData[rawData.length - 1].month ? 'not-allowed' : 'pointer',
+              opacity: viewWindow.end >= rawData[rawData.length - 1].month ? 0.5 : 1
+            }}
+          >
+            {t.next} →
           </button>
         </div>
-        {!isZoomedOut && (
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
-            <button
-              onClick={() => handleScroll('left')}
-              disabled={viewWindow.start <= 24}
-              style={{
-                padding: '8px 16px',
-                backgroundColor: '#f0f0f0',
-                border: '1px solid #ddd',
-                borderRadius: '4px',
-                cursor: viewWindow.start <= 24 ? 'not-allowed' : 'pointer',
-                opacity: viewWindow.start <= 24 ? 0.5 : 1
-              }}
-            >
-              ← Previous
-            </button>
-            <button
-              onClick={() => handleScroll('right')}
-              disabled={viewWindow.end >= monthlyAdjustedData.length}
-              style={{
-                padding: '8px 16px',
-                backgroundColor: '#f0f0f0',
-                border: '1px solid #ddd',
-                borderRadius: '4px',
-                cursor: viewWindow.end >= monthlyAdjustedData.length ? 'not-allowed' : 'pointer',
-                opacity: viewWindow.end >= monthlyAdjustedData.length ? 0.5 : 1
-              }}
-            >
-              Next →
-            </button>
-          </div>
-        )}
+      )}
+
+      <div style={{ width: '100%', height: '800px' }}>
+        <ResponsiveContainer>
+          <ComposedChart
+            data={visibleData}
+            margin={{ top: 20, right: 110, bottom: 70, left: 50 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis
+              dataKey="month"
+              label={{ value: t.month, position: 'bottom', offset: 12, fontSize: 24, fontWeight: 'medium' }}
+              tick={{ fontSize: 16 }}
+            />
+            <YAxis
+              yAxisId="left"
+              orientation="left"
+              label={{ value: t.available, angle: -90, position: 'left', offset: 12, fontSize: 24, fontWeight: 'medium' }}
+              tick={{ fontSize: 16 }}
+            />
+            <YAxis
+              yAxisId="right"
+              orientation="right"
+              label={{ value: t.sales, angle: 90, position: 'right', offset: 12, fontSize: 24, fontWeight: 'medium' }}
+              tick={{ fontSize: 16 }}
+            />
+            <Tooltip 
+              formatter={(value: number) => formatNumber(value, language)}
+            />
+            <Legend wrapperStyle={{ paddingTop: '80px', paddingBottom: '40px', fontSize: '24px', fontWeight: 'bold' }} />
+            <Bar yAxisId="left" dataKey="newInventory" fill="#8884d8" name={t.newInventory} />
+            <Bar yAxisId="left" dataKey="available" fill="#82ca9d" name={t.available} />
+            <Bar yAxisId="left" dataKey="left" fill="#ffc658" name={t.inventoryLeft} />
+            <Line yAxisId="right" type="monotone" dataKey="sold" stroke="#ff7300" name={t.sold} />
+          </ComposedChart>
+        </ResponsiveContainer>
       </div>
-      <ResponsiveContainer>
-        <ComposedChart 
-          data={visibleData}
-          margin={{ top: 20, right: 50, bottom: 30, left: 50 }}
-        >
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis 
-            dataKey="month"
-            label={{ value: 'Month', position: 'insideBottom', offset: -5 }}
-          />
-          <YAxis 
-            yAxisId="left"
-            label={{ value: 'Inventory', angle: -90, position: 'insideLeft', offset: -15 }}
-          />
-          <YAxis 
-            yAxisId="right"
-            orientation="right"
-            label={{ value: 'Sales', angle: 90, position: 'insideRight', offset: 35 }}
-          />
-          <Tooltip />
-          <Legend wrapperStyle={{ paddingTop: '20px', paddingBottom: '20px' }} />
-          <Bar yAxisId="left" dataKey="newInventory" fill="#8884d8" name="New Inventory" />
-          <Bar yAxisId="left" dataKey="available" fill="#82ca9d" name="Available" />
-          <Bar yAxisId="left" dataKey="left" fill="#ffc658" name="Inventory Left" />
-          <Line yAxisId="right" type="monotone" dataKey="sold" stroke="#ff7300" name="Sold" strokeWidth={2} />
-        </ComposedChart>
-      </ResponsiveContainer>
     </div>
   );
 };

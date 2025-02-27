@@ -1,5 +1,6 @@
 import React from 'react';
 import { ComposedChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { useLanguage, translations } from '../context/LanguageContext';
 
 interface QuarterlyData {
   name: string;
@@ -104,35 +105,40 @@ const calculateQuarterlyData = (): QuarterlyData[] => {
 };
 
 const BarnChart: React.FC = () => {
+  const { language } = useLanguage();
+  const t = translations[language];
+  
   const quarterlyData = calculateQuarterlyData();
   const maxBarns = Math.max(...quarterlyData.map(d => d.barns));
 
   return (
-    <div style={{ width: '100%', height: '400px', marginTop: '120px', marginBottom: '100px' }}>
-      <div style={{ textAlign: 'center', marginBottom: '15px' }}>
-        <h3>Barns Needed</h3>
+    <div style={{ marginTop: '20px' }}>
+      <h3 style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '20px' }}>{t.barnsNeeded}</h3>
+      <div style={{ width: '100%', height: '800px' }}>
+        <ResponsiveContainer>
+          <ComposedChart
+            data={quarterlyData}
+            margin={{ top: 20, right: 110, bottom: 70, left: 50 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis
+              dataKey="name"
+              label={{ value: t.quarter, position: 'bottom', offset: 12, fontSize: 24, fontWeight: 'medium' }}
+              tick={{ fontSize: 16 }}
+            />
+            <YAxis
+              label={{ value: t.numberOfBarns, angle: -90, position: 'left', offset: 12, fontSize: 24, fontWeight: 'medium' }}
+              tick={{ fontSize: 16 }}
+              domain={[0, maxBarns + 5]}
+            />
+            <Tooltip 
+              formatter={(value: any, name: string) => [Math.round(Number(value)), t.barnsNeeded]}
+            />
+            <Legend wrapperStyle={{ paddingTop: '80px', paddingBottom: '40px', fontSize: '24px', fontWeight: 'bold' }} />
+            <Bar dataKey="barns" fill="#8884d8" name={t.barnsNeeded} />
+          </ComposedChart>
+        </ResponsiveContainer>
       </div>
-      <ResponsiveContainer>
-        <ComposedChart
-          data={quarterlyData}
-          margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
-        >
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis 
-            dataKey="name"
-            label={{ value: 'Quarter', position: 'insideBottom', offset: -5 }}
-          />
-          <YAxis
-            label={{ value: 'Number of Barns', angle: -90, position: 'insideLeft', offset: -5 }}
-            domain={[0, maxBarns + 5]}
-          />
-<Tooltip 
-  formatter={(value: any, name: string) => [Math.round(Number(value)), name]}
-/>
-          <Legend />
-          <Bar dataKey="barns" fill="#8884d8" name="Barns Needed" />
-        </ComposedChart>
-      </ResponsiveContainer>
     </div>
   );
 };
